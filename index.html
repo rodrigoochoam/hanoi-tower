@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tower of Hanoi</title>
+    <!-- Add Bootstrap CSS Link -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        .tower {
+            width: 130px;
+            height: 300px;
+            background-color: #f8f9fa;
+            display: inline-block;
+            vertical-align: bottom;
+            margin: 0 20px;
+            text-align: center;
+            padding-top: 10px;
+            font-weight: bold;
+        }
+
+        .disk {
+            background-color: #3498db;
+            width: 100%;
+            height: 30px;
+            margin: 2px auto;
+            transition: transform 0.5s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .disk span {
+            color: white;
+        }
+
+        .disk1 { background-color: #e74c3c; }
+        .disk2 { background-color: #f1c40f; }
+        .disk3 { background-color: #27ae60; }
+        .disk4 { background-color: #9b59b6; }
+
+        #log {
+            margin-top: 20px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        #createdBy {
+            text-align: center;
+            font-size: 12px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-4">
+                <label for="numDisks" class="form-label">Number of Disks:</label>
+                <input type="number" id="numDisks" class="form-control" value="4" min="1" max="4">
+                <button id="startButton" class="btn btn-primary mt-3">Start</button>
+            </div>
+        </div>
+
+        <div class="row mt-5">
+            <div class="col-md-4">
+                <div class="tower" id="A"><span>A</span></div>
+            </div>
+            <div class="col-md-4">
+                <div class="tower" id="B"><span>B</span></div>
+            </div>
+            <div class="col-md-4">
+                <div class="tower" id="C"><span>C</span></div>
+            </div>
+        </div>
+
+        <div class="row mt-5">
+            <div class="col-md-12">
+                <div id="log"></div>
+            </div>
+        </div>
+
+        <div class="row mt-3">
+            <div class="col-md-12">
+                <div id="createdBy">
+                    <p>Created by Rodrigo Ochoa Mayagoitia. MIT. 21/Sep/2023.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+       
+        // Get the input element
+        const numDisksInput = document.getElementById('numDisks');
+
+        // Add an event listener to the input field
+        numDisksInput.addEventListener('input', function () {
+            const inputValue = parseInt(numDisksInput.value);
+            if (inputValue > 4) {
+                numDisksInput.value = '4'; // Set the value to the maximum allowed (4)
+            }
+        });
+
+
+        let moveCount = 0; // Initialize a move counter
+
+        const moveDisks = async function (n, from, to, spare) {
+            if (n === 1) {
+                moveCount++; // Increment the move counter
+                await moveDisk(from, to, n);
+            } else {
+                await moveDisks(n - 1, from, spare, to);
+                moveCount++; // Increment the move counter
+                await moveDisk(from, to, n);
+                await moveDisks(n - 1, spare, to, from);
+            }
+        }
+
+        // Helper function to move a disk from one tower to another
+        const moveDisk = async function (from, to, diskNumber) {
+            const fromTower = document.getElementById(from);
+            const toTower = document.getElementById(to);
+            const disk = fromTower.querySelector(`.disk${diskNumber}`);
+
+            // Animate the movement
+            await new Promise(resolve => {
+                setTimeout(() => {
+                    const logElement = document.getElementById('log');
+                    logElement.innerHTML += `Move #${moveCount}: Move disk:${diskNumber} from:${from} to:${to}<br>`;
+                    logElement.scrollTop = logElement.scrollHeight; // Auto-scroll to the bottom
+                    toTower.appendChild(disk);
+                    resolve();
+                }, moveCount * 200); // Delay the animation for better visualization
+            });
+        }
+
+        // Function to reset the towers and start the Tower of Hanoi with a new number of disks
+        const startTowerOfHanoi = () => {
+            // Clear the towers and log
+            document.getElementById('A').innerHTML = '<span>A</span>';
+            document.getElementById('B').innerHTML = '<span>B</span>';
+            document.getElementById('C').innerHTML = '<span>C</span>';
+            document.getElementById('log').innerHTML = '';
+            moveCount = 0;
+
+            const numDisks = parseInt(document.getElementById('numDisks').value);
+            
+            // Initialize the Tower A with disks
+            const towerA = document.getElementById('A');
+            for (let i = numDisks; i >= 1; i--) {
+                const disk = document.createElement('div');
+                disk.className = `disk disk${i}`;
+                disk.style.width = i * 30 + 'px'; // Adjust the disk width based on size
+                const diskSpan = document.createElement('span');
+                diskSpan.textContent = i;
+                disk.appendChild(diskSpan);
+                towerA.appendChild(disk);
+            }
+
+            moveDisks(numDisks, "A", "C", "B");
+        };
+
+        // Add an event listener to the start button
+        document.getElementById('startButton').addEventListener('click', startTowerOfHanoi);
+    </script>
+</body>
+</html>
